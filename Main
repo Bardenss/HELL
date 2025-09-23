@@ -1,103 +1,4 @@
 -- ============================================================
--- CORE (fungsi asli + log/notify)
--- ============================================================
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-local hrp = nil
-local Packs = {
-    lucide = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))(),
-    craft  = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))(),
-    geist  = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))(),
-}
-
-local function refreshHRP(char)
-    if not char then
-        char = player.Character or player.CharacterAdded:Wait()
-    end
-    hrp = char:WaitForChild("HumanoidRootPart")
-end
-if player.Character then refreshHRP(player.Character) end
-player.CharacterAdded:Connect(refreshHRP)
-
-local frameTime = 1/30
-local playbackRate = 1.0
-local isRunning = false
-local routes = {}
-
--- ============================================================
--- ROUTE EXAMPLE (isi CFrame)
--- ============================================================
--- Tinggi default waktu record
-local DEFAULT_HEIGHT = 1.859999418258667
-
--- Ambil tinggi avatar sekarang
-local function getCurrentHeight()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local humanoid = char:WaitForChild("Humanoid")
-    return humanoid.HipHeight + (char:FindFirstChild("Head") and char.Head.Size.Y or 2)
-end
-
--- Adjustment posisi sesuai tinggi avatar
-local function adjustRoute(frames)
-    local adjusted = {}
-    local currentHeight = getCurrentHeight()
-    local offsetY = (currentHeight - DEFAULT_HEIGHT) * 0.5 -- <<< dikali 0.9
-    for _,cf in ipairs(frames) do
-        local pos, rot = cf.Position, cf - cf.Position
-        local newPos = Vector3.new(pos.X, pos.Y + offsetY, pos.Z)
-        table.insert(adjusted, CFrame.new(newPos) * rot)
-    end
-    return adjusted
-end
-
--- ============================================================
--- ROUTE EXAMPLE (isi CFrame)
--- ============================================================
-local function loadRoute(url)
-    local ok, result = pcall(function()
-        return loadstring(game:HttpGet(url))()
-    end)
-    if ok and type(result) == "table" then
-        -- auto adjust langsung disini
-        return adjustRoute(result)
-    else
-        warn("Gagal load route dari: "..url)
-        return {}
-    end
-end
-
--- daftar link raw route (ubah ke link punyamu)
-routes = {
-    {"BASE → CP1", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/01.lua")},
-    {"CP1 → CP2", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/12.lua")},
-    {"CP2 → CP3", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/23.lua")},
-    {"CP3 → CP4", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/34.lua")},
-    {"CP4 → CP5", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/45.lua")},
-    {"CP5 → CP6", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/56.lua")},
-    {"CP6 → CP7", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/67.lua")},
-    {"CP7 → CP8", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/78.lua")},
-    {"CP8 → CP9", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/89.lua")},
-    {"CP9 → CP10", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/910.lua")},
-    {"CP10 → CP11", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1011.lua")},
-    {"CP11 → CP12", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1112.lua")},
-    {"CP12 → CP13", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1213.lua")},
-    {"CP13 → CP14", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1314.lua")},
-    {"CP14 → CP15", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1415.lua")},
-    {"CP15 → CP16", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1516.lua")},
-    {"CP16 → CP17", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1617.lua")},
-    {"CP17 → CP18", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1718.lua")},
-    {"CP18 → CP19", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1819.lua")},
-    {"CP19 → CP20", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/1920.lua")},
-    {"CP20 → CP21", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2021.lua")},
-    {"CP21 → CP22", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2122.lua")},
-    {"CP22 → CP23", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2223.lua")},
-    {"CP23 → CP24", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2324.lua")},
-    {"CP24 → CP25", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2425.lua")},
-    {"CP25 → CP26", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2526.lua")},
-    {"CP26 → SUMMIT", loadRoute("https://raw.githubusercontent.com/Bardenss/HELL/refs/heads/main/2627.lua")},
-}
--- ============================================================
 -- Fungsi bantu & core logic
 -- ============================================================
 local VirtualUser = game:GetService("VirtualUser")
@@ -229,29 +130,30 @@ end
 
 local function runAllRoutes()
     if #routes == 0 then return end
-    if not hrp then refreshHRP() end
     isRunning = true
-    setBypass(true)
-    local idx = getNearestRoute()
-    logAndNotify("Sesuaikan dari cp : ", routes[idx][1])
-    for r = idx, #routes do
-        if not isRunning then break end
-        local frames = routes[r][2]
-        if #frames < 2 then continue end
-        local startIdx = getNearestFrameIndex(frames)
-        for i = startIdx, #frames - 1 do
-            if not isRunning then break end
-            lerpCF(frames[i], frames[i+1])
-        end
-    end
-    setBypass(false)
-    isRunning = false
 
-    -- loop otomatis, hanya kalau masih running
-    if isRunning then
+    while isRunning do
+        if not hrp then refreshHRP() end
+        setBypass(true)
+        local idx = getNearestRoute()
+        logAndNotify("Sesuaikan dari cp : ", routes[idx][1])
+
+        for r = idx, #routes do
+            if not isRunning then break end
+            local frames = routes[r][2]
+            if #frames < 2 then continue end
+            local startIdx = getNearestFrameIndex(frames)
+            for i = startIdx, #frames - 1 do
+                if not isRunning then break end
+                lerpCF(frames[i], frames[i+1])
+            end
+        end
+
+        setBypass(false)
+
+        -- respawn + delay 5 detik sebelum ulang
         respawnPlayer()
-        task.wait(3)
-        runAllRoutes()
+        task.wait(5)
     end
 end
 
@@ -398,7 +300,7 @@ local InfoTab = Window:Tab({
 -- Main Tab (Dropdown speed mulai dari 0.25x)
 -- ============================================================
 local speeds = {}
-for v = 0.25, 3, 0.25 do
+for v = 0.25, 100, 0.25 do
     table.insert(speeds, string.format("%.2fx", v))
 end
 MainTab:Dropdown({
