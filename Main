@@ -273,6 +273,21 @@ local function stopRoute()
     end
 end
 
+local function stopRoute()
+    if isRunning then
+        logAndNotify("Stop route", "Semua route dihentikan!")
+    end
+
+    -- hentikan loop utama
+    isRunning = false
+
+    -- matikan bypass kalau aktif
+    if bypassActive then
+        bypassActive = false
+        notify("Bypass Animasi", "❌ Nonaktif", 2)
+    end
+end
+
 local function runSpecificRoute(routeIdx)
     if not routes[routeIdx] then return end
     if not hrp then refreshHRP() end
